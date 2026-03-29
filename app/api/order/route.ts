@@ -1,7 +1,7 @@
-// app/api/order/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { generateOrderId } from "@/lib/generate-order-id";
+import { sendOrderPendingEmail } from "@/lib/send-order-email";
 
 export async function POST(req: NextRequest) {
   try {
@@ -76,13 +76,36 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const orderId = order.order_code as number;
+    const orderId = order.id;
+    const orderCodeValue = String(order.order_code);
+
+    let normalizedItems: Array<{
+      id: string | number;
+      slug?: string;
+      name: string;
+      qty: number;
+      price: number | null;
+      size?: string | null;
+      color?: string | null;
+      mainImage?: string | null;
+    }> = [];
 
     if (Array.isArray(cart) && cart.length > 0) {
-      const itemsToInsert = cart.map((item: any) => ({
+      normalizedItems = cart.map((item: any, index: number) => ({
+        id: item.id ?? index,
+        slug: item.slug ?? null,
+        name: item.name ?? item.slug ?? "Producto",
+        qty: Number(item.qty ?? 1),
+        price: item.price != null ? Number(item.price) : 0,
+        size: item.size ?? null,
+        color: item.color ?? null,
+        mainImage: item.mainImage ?? null,
+      }));
+
+      const itemsToInsert = normalizedItems.map((item) => ({
         order_id: orderId,
         product_slug: item.slug ?? null,
-        name: item.name ?? item.slug ?? "Producto",
+        name: item.name,
         size: item.size ?? null,
         color: item.color ?? null,
         qty: item.qty,
@@ -98,10 +121,32 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    if (email) {
+      await sendOrderPendingEmail({
+        email,
+        nombres: nombres || "Cliente",
+        telefono: telefono || "",
+        orderCode: orderCodeValue,
+        subtotal: Number(subtotal ?? 0),
+        envio: Number(envio ?? 0),
+        discount: Number(discount ?? 0),
+        total: Number(finalTotal ?? total ?? 0),
+        couponCode: appliedCoupon ?? null,
+        direccion: direccion || "",
+        referencia: referencia || "",
+        departamento: departamento || "",
+        provincia: provincia || "",
+        distrito: distrito || "",
+        shippingMode: shippingMode || "",
+        carrier: carrier || "",
+        items: normalizedItems,
+      });
+    }
+
     return NextResponse.json({
       ok: true,
       orderId,
-      orderCode: order.order_code,
+      orderCode: orderCodeValue,
     });
   } catch (err: any) {
     console.error("Error en /api/order:", err);
