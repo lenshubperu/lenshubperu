@@ -71,7 +71,7 @@ export default function CatalogFilters({ categories, brands }: Props) {
     const url = queryString ? `/productos?${queryString}` : "/productos";
 
     startTransition(() => {
-      router.replace(url);
+      router.replace(url, { scroll: false });
     });
   };
 
@@ -93,19 +93,6 @@ export default function CatalogFilters({ categories, brands }: Props) {
       .filter((item) => normalizeText(item).includes(normalizedSearch))
       .slice(0, 6);
   }, [searchValue, suggestionPool]);
-
-  useEffect(() => {
-    const normalizedCurrent = normalizeText(currentSearch);
-    const normalizedInput = normalizeText(searchValue);
-
-    if (normalizedInput === normalizedCurrent) return;
-
-    const timeout = setTimeout(() => {
-      updateParams({ search: searchValue.trim() });
-    }, 500);
-
-    return () => clearTimeout(timeout);
-  }, [searchValue, currentSearch, searchParams]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -131,8 +118,10 @@ export default function CatalogFilters({ categories, brands }: Props) {
               placeholder="Buscar cámaras, drones, marcas..."
               value={searchValue}
               onChange={(e) => {
-                setSearchValue(e.target.value);
-                if (e.target.value.trim().length >= 2) {
+                const value = e.target.value;
+                setSearchValue(value);
+
+                if (value.trim().length >= 2) {
                   setOpenSuggestions(true);
                 } else {
                   setOpenSuggestions(false);
