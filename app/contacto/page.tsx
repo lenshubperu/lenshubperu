@@ -33,7 +33,7 @@ export default function ContactoPage() {
               </a>
 
               <a
-                href="mailto:lenshubperu@gmail.com"
+                href="mailto:ventas@lenshubperu.com"
                 className="inline-flex min-h-[54px] items-center justify-center gap-3 rounded-full border border-black/10 px-7 text-sm font-medium text-black transition duration-300 hover:-translate-y-0.5 hover:bg-neutral-50"
               >
                 <Mail className="h-4 w-4" />
@@ -65,7 +65,7 @@ export default function ContactoPage() {
                   Para consultas más detalladas o coordinación adicional.
                 </p>
                 <p className="mt-3 text-sm font-medium text-black">
-                  lenshubperu@gmail.com
+                  ventas@lenshubperu.com
                 </p>
               </div>
 

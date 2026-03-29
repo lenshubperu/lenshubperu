@@ -46,7 +46,7 @@ export default function Footer() {
 
               <div className="flex items-start gap-3">
                 <Mail className="mt-0.5 h-5 w-5 text-white/55" />
-                <span>ventas@lenshub.pe</span>
+                <span>ventas@lenshubperu.com</span>
               </div>
 
               <div className="flex items-start gap-3">

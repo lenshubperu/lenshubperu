@@ -33,10 +33,10 @@ export default function PromoBanners() {
 
             <div className="mt-7 flex flex-col gap-3 sm:flex-row">
               <Link
-                href="/productos"
+                href={`/productos?category=${encodeURIComponent("Instantáneas")}`}
                 className="inline-flex min-h-[52px] items-center justify-center rounded-full bg-white px-6 text-sm font-medium text-black transition duration-300 hover:-translate-y-0.5 hover:bg-neutral-100"
               >
-                Ver productos
+                Ver instantáneas
               </Link>
             </div>
           </div>
@@ -66,15 +66,16 @@ export default function PromoBanners() {
 
             <div>
               <p className="max-w-[34ch] text-sm leading-7 text-neutral-600 sm:text-base">
-                Equipos modernos y confiables para elevar tu trabajo y tu contenido.
+                Equipos modernos y confiables para elevar tu trabajo y tu
+                contenido.
               </p>
 
               <div className="mt-6">
                 <Link
-                  href="/productos"
+                  href={`/productos?category=${encodeURIComponent("Drones")}`}
                   className="inline-flex min-h-[52px] items-center justify-center rounded-full bg-black px-6 text-sm font-medium text-white transition duration-300 hover:-translate-y-0.5 hover:opacity-90"
                 >
-                  Ver productos
+                  Ver drones
                 </Link>
               </div>
             </div>
