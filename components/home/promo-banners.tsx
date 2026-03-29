@@ -33,7 +33,7 @@ export default function PromoBanners() {
 
             <div className="mt-7 flex flex-col gap-3 sm:flex-row">
               <Link
-                href="/catalogo"
+                href="/productos"
                 className="inline-flex min-h-[52px] items-center justify-center rounded-full bg-white px-6 text-sm font-medium text-black transition duration-300 hover:-translate-y-0.5 hover:bg-neutral-100"
               >
                 Ver productos
@@ -71,7 +71,7 @@ export default function PromoBanners() {
 
               <div className="mt-6">
                 <Link
-                  href="/catalogo"
+                  href="/productos"
                   className="inline-flex min-h-[52px] items-center justify-center rounded-full bg-black px-6 text-sm font-medium text-white transition duration-300 hover:-translate-y-0.5 hover:opacity-90"
                 >
                   Ver productos
