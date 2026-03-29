@@ -20,12 +20,9 @@ function normalizeText(text: string) {
 
 const SEARCH_HINTS = [
   "Cámaras",
-  "Camaras",
-  "Dron",
   "Drones",
   "Instax",
   "Instantáneas",
-  "Instantaneas",
   "Lentes",
   "Accesorios",
   "Canon",
@@ -74,7 +71,7 @@ export default function CatalogFilters({ categories, brands }: Props) {
     const url = queryString ? `/productos?${queryString}` : "/productos";
 
     startTransition(() => {
-      router.push(url);
+      router.replace(url);
     });
   };
 
@@ -84,25 +81,17 @@ export default function CatalogFilters({ categories, brands }: Props) {
   };
 
   const suggestionPool = useMemo(() => {
-    const unique = new Set<string>([
-      ...SEARCH_HINTS,
-      ...categories,
-      ...brands,
-    ]);
-
-    return Array.from(unique);
+    return Array.from(new Set([...SEARCH_HINTS, ...categories, ...brands]));
   }, [categories, brands]);
 
   const suggestions = useMemo(() => {
     const normalizedSearch = normalizeText(searchValue);
 
-    if (!normalizedSearch) {
-      return suggestionPool.slice(0, 8);
-    }
+    if (normalizedSearch.length < 2) return [];
 
     return suggestionPool
       .filter((item) => normalizeText(item).includes(normalizedSearch))
-      .slice(0, 8);
+      .slice(0, 6);
   }, [searchValue, suggestionPool]);
 
   useEffect(() => {
@@ -113,10 +102,10 @@ export default function CatalogFilters({ categories, brands }: Props) {
 
     const timeout = setTimeout(() => {
       updateParams({ search: searchValue.trim() });
-    }, 450);
+    }, 500);
 
     return () => clearTimeout(timeout);
-  }, [searchValue]);
+  }, [searchValue, currentSearch, searchParams]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -133,51 +122,70 @@ export default function CatalogFilters({ categories, brands }: Props) {
   }, []);
 
   return (
-    <div className="space-y-5">
-      <div className="grid gap-4 lg:grid-cols-[1.2fr_0.9fr_0.9fr_0.9fr]">
-        <div className="relative" ref={wrapperRef}>
-          <input
-            type="text"
-            placeholder="Buscar cámaras, drones, lentes, marcas..."
-            value={searchValue}
-            onChange={(e) => {
-              setSearchValue(e.target.value);
-              setOpenSuggestions(true);
-            }}
-            onFocus={() => setOpenSuggestions(true)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                submitSearch(searchValue);
-              }
+    <div className="space-y-3 sm:space-y-4">
+      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-[1.25fr_0.85fr_0.85fr_0.85fr]">
+        <div className="relative z-20" ref={wrapperRef}>
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Buscar cámaras, drones, marcas..."
+              value={searchValue}
+              onChange={(e) => {
+                setSearchValue(e.target.value);
+                if (e.target.value.trim().length >= 2) {
+                  setOpenSuggestions(true);
+                } else {
+                  setOpenSuggestions(false);
+                }
+              }}
+              onFocus={() => {
+                if (searchValue.trim().length >= 2 && suggestions.length > 0) {
+                  setOpenSuggestions(true);
+                }
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  submitSearch(searchValue);
+                }
 
-              if (e.key === "Escape") {
-                setOpenSuggestions(false);
-              }
-            }}
-            className="h-[52px] w-full rounded-full border border-black/10 bg-white px-5 pr-12 text-sm outline-none transition placeholder:text-neutral-400 focus:border-black/20"
-          />
+                if (e.key === "Escape") {
+                  setOpenSuggestions(false);
+                }
+              }}
+              className="h-[46px] w-full rounded-full border border-black/10 bg-white px-4 pr-20 text-sm text-black outline-none transition placeholder:text-neutral-400 focus:border-black/20 sm:h-[50px] sm:px-5"
+            />
 
-          {searchValue && (
+            {searchValue && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchValue("");
+                  setOpenSuggestions(false);
+                  submitSearch("");
+                }}
+                className="absolute right-11 top-1/2 -translate-y-1/2 text-xs text-neutral-400 transition hover:text-black"
+                aria-label="Limpiar búsqueda"
+              >
+                Limpiar
+              </button>
+            )}
+
             <button
               type="button"
-              onClick={() => {
-                setSearchValue("");
-                submitSearch("");
-              }}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-neutral-400 transition hover:text-black"
-              aria-label="Limpiar búsqueda"
+              onClick={() => submitSearch(searchValue)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full border border-black/10 px-2.5 py-1 text-[11px] font-medium text-black transition hover:bg-neutral-50"
             >
-              ✕
+              Ir
             </button>
-          )}
+          </div>
 
           {openSuggestions && suggestions.length > 0 && (
-            <div className="absolute left-0 top-[calc(100%+10px)] z-30 w-full overflow-hidden rounded-3xl border border-black/10 bg-white shadow-[0_18px_60px_rgba(0,0,0,0.08)]">
-              <div className="border-b border-black/5 px-4 py-3 text-[11px] font-medium uppercase tracking-[0.18em] text-neutral-400">
+            <div className="absolute left-0 right-0 top-[calc(100%+8px)] max-h-56 overflow-y-auto rounded-2xl border border-black/10 bg-white shadow-[0_16px_50px_rgba(0,0,0,0.10)]">
+              <div className="border-b border-black/5 px-4 py-2 text-[10px] font-medium uppercase tracking-[0.16em] text-neutral-400">
                 Sugerencias
               </div>
 
-              <div className="py-2">
+              <div className="py-1.5">
                 {suggestions.map((suggestion) => (
                   <button
                     key={suggestion}
@@ -186,7 +194,7 @@ export default function CatalogFilters({ categories, brands }: Props) {
                       setSearchValue(suggestion);
                       submitSearch(suggestion);
                     }}
-                    className="flex w-full items-center px-4 py-3 text-left text-sm text-black transition hover:bg-neutral-50"
+                    className="flex w-full items-center px-4 py-2.5 text-left text-sm text-black transition hover:bg-neutral-50"
                   >
                     {suggestion}
                   </button>
@@ -199,9 +207,9 @@ export default function CatalogFilters({ categories, brands }: Props) {
         <select
           value={currentCategory}
           onChange={(e) => updateParams({ category: e.target.value })}
-          className="h-[52px] rounded-full border border-black/10 bg-white px-5 text-sm outline-none transition focus:border-black/20"
+          className="h-[46px] rounded-full border border-black/10 bg-white px-4 text-sm text-black outline-none transition focus:border-black/20 sm:h-[50px] sm:px-5"
         >
-          <option value="Todos">Todas las categorías</option>
+          <option value="Todos">Categorías</option>
           {categories.map((category) => (
             <option key={category} value={category}>
               {category}
@@ -212,9 +220,9 @@ export default function CatalogFilters({ categories, brands }: Props) {
         <select
           value={currentBrand}
           onChange={(e) => updateParams({ brand: e.target.value })}
-          className="h-[52px] rounded-full border border-black/10 bg-white px-5 text-sm outline-none transition focus:border-black/20"
+          className="h-[46px] rounded-full border border-black/10 bg-white px-4 text-sm text-black outline-none transition focus:border-black/20 sm:h-[50px] sm:px-5"
         >
-          <option value="Todas">Todas las marcas</option>
+          <option value="Todas">Marcas</option>
           {brands.map((brand) => (
             <option key={brand} value={brand}>
               {brand}
@@ -225,17 +233,19 @@ export default function CatalogFilters({ categories, brands }: Props) {
         <select
           value={currentSort}
           onChange={(e) => updateParams({ sort: e.target.value })}
-          className="h-[52px] rounded-full border border-black/10 bg-white px-5 text-sm outline-none transition focus:border-black/20"
+          className="h-[46px] rounded-full border border-black/10 bg-white px-4 text-sm text-black outline-none transition focus:border-black/20 sm:h-[50px] sm:px-5"
         >
-          <option value="recent">Más recientes</option>
-          <option value="price-asc">Precio: menor a mayor</option>
-          <option value="price-desc">Precio: mayor a menor</option>
-          <option value="name-asc">Nombre: A-Z</option>
+          <option value="recent">Recientes</option>
+          <option value="price-asc">Menor precio</option>
+          <option value="price-desc">Mayor precio</option>
+          <option value="name-asc">Nombre A-Z</option>
         </select>
       </div>
 
       {isPending && (
-        <p className="text-sm text-neutral-400">Actualizando productos...</p>
+        <p className="text-xs text-neutral-400 sm:text-sm">
+          Actualizando productos...
+        </p>
       )}
     </div>
   );
