@@ -6,6 +6,24 @@ export type AdminProductImage = {
   position: number;
 };
 
+export type AdminProductDescription = {
+  id: string;
+  paragraph: string;
+  position: number;
+};
+
+export type AdminProductFeature = {
+  id: string;
+  feature: string;
+  position: number;
+};
+
+export type AdminProductBoxContent = {
+  id: string;
+  content: string;
+  position: number;
+};
+
 export type AdminProduct = {
   id: string;
   name: string;
@@ -22,6 +40,9 @@ export type AdminProduct = {
   cover_image: string | null;
   badge: string | null;
   product_images?: AdminProductImage[];
+  product_descriptions?: AdminProductDescription[];
+  product_features?: AdminProductFeature[];
+  product_box_content?: AdminProductBoxContent[];
 };
 
 export async function getProductsAdmin() {
@@ -40,7 +61,9 @@ export async function getProductsAdmin() {
   return data;
 }
 
-export async function getProductAdminById(id: string): Promise<AdminProduct | null> {
+export async function getProductAdminById(
+  id: string
+): Promise<AdminProduct | null> {
   const supabase = await createClient();
 
   const { data, error } = await supabase
@@ -64,6 +87,21 @@ export async function getProductAdminById(id: string): Promise<AdminProduct | nu
         id,
         image_url,
         position
+      ),
+      product_descriptions (
+        id,
+        paragraph,
+        position
+      ),
+      product_features (
+        id,
+        feature,
+        position
+      ),
+      product_box_content (
+        id,
+        content,
+        position
       )
     `)
     .eq("id", id)
@@ -77,6 +115,18 @@ export async function getProductAdminById(id: string): Promise<AdminProduct | nu
   const product = data as AdminProduct;
 
   product.product_images = (product.product_images || []).sort(
+    (a, b) => (a.position ?? 0) - (b.position ?? 0)
+  );
+
+  product.product_descriptions = (product.product_descriptions || []).sort(
+    (a, b) => (a.position ?? 0) - (b.position ?? 0)
+  );
+
+  product.product_features = (product.product_features || []).sort(
+    (a, b) => (a.position ?? 0) - (b.position ?? 0)
+  );
+
+  product.product_box_content = (product.product_box_content || []).sort(
     (a, b) => (a.position ?? 0) - (b.position ?? 0)
   );
 
