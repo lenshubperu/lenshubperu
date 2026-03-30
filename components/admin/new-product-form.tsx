@@ -59,21 +59,21 @@ export default function NewProductForm({ categories, brands }: Props) {
 
     try {
       const res = await createProduct({
-        name: form.name,
-        brand: form.brand,
-        category: form.category,
+        name: form.name.trim(),
+        brand: form.brand.trim(),
+        category: form.category.trim(),
         price_online: Number(form.price_online),
         price_store: Number(form.price_store || form.price_online),
         stock: Number(form.stock),
+        is_active: form.is_active,
         cover_image: form.images[0] || "",
         images: form.images,
-        is_active: form.is_active,
-        short_description: form.short_description,
         sku,
-        badge: form.badge,
+        short_description: form.short_description.trim(),
+        badge: form.badge.trim(),
         descriptions: normalizeList(descriptions),
         features: normalizeList(features),
-        boxContent: normalizeList(boxContent),
+        box_content: normalizeList(boxContent),
       });
 
       if (!res.success) {

@@ -10,6 +10,10 @@ type Props = {
   product: AdminProduct;
 };
 
+function normalizeList(items: string[]) {
+  return items.map((item) => item.trim()).filter(Boolean);
+}
+
 export default function EditProductForm({ product }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -41,14 +45,15 @@ export default function EditProductForm({ product }: Props) {
             .sort((a, b) => a.position - b.position)
             .map((item) => item.feature || "")
         : [""],
-
-    box_content:
-      product.product_box_content && product.product_box_content.length > 0
-        ? product.product_box_content
-            .sort((a, b) => a.position - b.position)
-            .map((item) => item.content || "")
-        : [""],
   });
+
+  const [boxContent, setBoxContent] = useState<string[]>(
+    product.product_box_content && product.product_box_content.length > 0
+      ? product.product_box_content
+          .sort((a, b) => a.position - b.position)
+          .map((item) => item.content || "")
+      : [""]
+  );
 
   function updateDescription(index: number, value: string) {
     const next = [...form.descriptions];
@@ -81,18 +86,18 @@ export default function EditProductForm({ product }: Props) {
   }
 
   function updateBoxContent(index: number, value: string) {
-    const next = [...form.box_content];
+    const next = [...boxContent];
     next[index] = value;
-    setForm({ ...form, box_content: next });
+    setBoxContent(next);
   }
 
   function addBoxContent() {
-    setForm({ ...form, box_content: [...form.box_content, ""] });
+    setBoxContent([...boxContent, ""]);
   }
 
   function removeBoxContent(index: number) {
-    const next = form.box_content.filter((_, i) => i !== index);
-    setForm({ ...form, box_content: next.length ? next : [""] });
+    const next = boxContent.filter((_, i) => i !== index);
+    setBoxContent(next.length ? next : [""]);
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -116,36 +121,23 @@ export default function EditProductForm({ product }: Props) {
       return;
     }
 
-    const cleanDescriptions = form.descriptions
-      .map((item) => item.trim())
-      .filter(Boolean);
-
-    const cleanFeatures = form.features
-      .map((item) => item.trim())
-      .filter(Boolean);
-
-    const cleanBoxContent = form.box_content
-      .map((item) => item.trim())
-      .filter(Boolean);
-
     try {
-      const res = await updateProduct({
-        id: product.id,
-        name: form.name,
-        brand: form.brand,
-        category: form.category,
+      const res = await updateProduct(product.id, {
+        name: form.name.trim(),
+        brand: form.brand.trim(),
+        category: form.category.trim(),
         price_online: Number(form.price_online),
         price_store: Number(form.price_store),
         stock: Number(form.stock),
         is_active: form.is_active,
-        short_description: form.short_description,
-        sku,
-        badge: form.badge,
         cover_image: form.images[0] || "",
         images: form.images,
-        descriptions: cleanDescriptions,
-        features: cleanFeatures,
-        box_content: cleanBoxContent,
+        short_description: form.short_description.trim(),
+        sku,
+        badge: form.badge.trim(),
+        descriptions: normalizeList(form.descriptions),
+        features: normalizeList(form.features),
+        box_content: normalizeList(boxContent),
       });
 
       if (!res.success) {
@@ -391,7 +383,7 @@ export default function EditProductForm({ product }: Props) {
           </button>
         </div>
 
-        {form.box_content.map((item, index) => (
+        {boxContent.map((item, index) => (
           <div key={index} className="flex gap-2">
             <input
               type="text"
