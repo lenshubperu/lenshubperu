@@ -34,14 +34,14 @@ export default function EditProductForm({ product }: Props) {
 
     descriptions:
       product.product_descriptions && product.product_descriptions.length > 0
-        ? product.product_descriptions
+        ? [...product.product_descriptions]
             .sort((a, b) => a.position - b.position)
             .map((item) => item.paragraph || "")
         : [""],
 
     features:
       product.product_features && product.product_features.length > 0
-        ? product.product_features
+        ? [...product.product_features]
             .sort((a, b) => a.position - b.position)
             .map((item) => item.feature || "")
         : [""],
@@ -49,7 +49,7 @@ export default function EditProductForm({ product }: Props) {
 
   const [boxContent, setBoxContent] = useState<string[]>(
     product.product_box_content && product.product_box_content.length > 0
-      ? product.product_box_content
+      ? [...product.product_box_content]
           .sort((a, b) => a.position - b.position)
           .map((item) => item.content || "")
       : [""]
@@ -122,7 +122,8 @@ export default function EditProductForm({ product }: Props) {
     }
 
     try {
-      const res = await updateProduct(product.id, {
+      const res = await updateProduct({
+        id: product.id,
         name: form.name.trim(),
         brand: form.brand.trim(),
         category: form.category.trim(),
