@@ -7,6 +7,10 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "www.lenshubperu.com",
       },
+      {
+        protocol: "https",
+        hostname: "pub-8126f15a0d334b9fb6de95bb3588f282.r2.dev",
+      },
     ],
   },
 

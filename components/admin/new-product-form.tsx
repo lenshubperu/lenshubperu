@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createProduct } from "@/lib/admin/products-actions";
-import ProductImageUploader from "@/components/admin/product-image-uploader";
+import ProductGalleryUploader from "@/components/admin/product-gallery-uploader";
 
 type Props = {
   categories: string[];
@@ -21,8 +21,8 @@ export default function NewProductForm({ categories, brands }: Props) {
     price_online: "",
     price_store: "",
     stock: "",
-    cover_image: "",
     is_active: true,
+    images: [] as string[],
   });
 
   async function handleSubmit(e: React.FormEvent) {
@@ -39,7 +39,8 @@ export default function NewProductForm({ categories, brands }: Props) {
         price_online: Number(form.price_online),
         price_store: Number(form.price_store || form.price_online),
         stock: Number(form.stock),
-        cover_image: form.cover_image,
+        cover_image: form.images[0] || "",
+        images: form.images,
         is_active: form.is_active,
       });
 
@@ -147,22 +148,13 @@ export default function NewProductForm({ categories, brands }: Props) {
       </div>
 
       <div>
-        <label className="text-sm font-medium">Imagen principal</label>
-
+        <label className="text-sm font-medium">Galería de imágenes</label>
         <div className="mt-3">
-          <ProductImageUploader
-            value={form.cover_image}
-            onChange={(url) => setForm({ ...form, cover_image: url })}
+          <ProductGalleryUploader
+            images={form.images}
+            onChange={(images) => setForm({ ...form, images })}
           />
         </div>
-
-        <input
-          type="text"
-          value={form.cover_image}
-          onChange={(e) => setForm({ ...form, cover_image: e.target.value })}
-          className="mt-3 w-full rounded-xl border border-neutral-300 px-3 py-2"
-          placeholder="URL final de la imagen"
-        />
       </div>
 
       <div className="flex items-center gap-2">

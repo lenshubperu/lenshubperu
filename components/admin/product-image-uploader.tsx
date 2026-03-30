@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import Image from "next/image";
 
 type Props = {
   value: string;
@@ -11,10 +12,13 @@ export default function ProductImageUploader({ value, onChange }: Props) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [uploading, setUploading] = useState(false);
 
-  async function handleFileChange(file: File) {
-    setUploading(true);
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
     try {
+      setUploading(true);
+
       const formData = new FormData();
       formData.append("file", file);
 
@@ -23,72 +27,88 @@ export default function ProductImageUploader({ value, onChange }: Props) {
         body: formData,
       });
 
-      const data = await res.json();
+      const text = await res.text();
+      console.log("UPLOAD RAW RESPONSE:", text);
 
-      if (!res.ok || !data.success) {
-        alert(data.error || "No se pudo subir la imagen");
-        return;
+      let data: { url?: string; error?: string } = {};
+
+      try {
+        data = JSON.parse(text);
+      } catch {
+        throw new Error("La API no devolvió JSON válido");
       }
 
-      onChange(data.imageUrl);
+      if (!res.ok) {
+        throw new Error(data.error || "No se pudo subir la imagen");
+      }
+
+      if (!data.url) {
+        throw new Error("La API no devolvió la URL de la imagen");
+      }
+
+      onChange(data.url);
+      alert("Imagen subida correctamente");
     } catch (error) {
-      console.error(error);
-      alert("Error subiendo imagen");
+      console.error("Upload frontend error:", error);
+      alert(
+        error instanceof Error
+          ? error.message
+          : "No se pudo subir la imagen"
+      );
     } finally {
       setUploading(false);
+      if (inputRef.current) {
+        inputRef.current.value = "";
+      }
     }
   }
 
   return (
-    <div className="space-y-3">
-      <div className="relative overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-50">
-        <div className="relative aspect-square w-full">
-          {value ? (
-  <img
-    src={value}
-    alt="Preview"
-    className="h-full w-full object-cover"
-  />
-) : (
-            <div className="flex h-full items-center justify-center text-sm text-neutral-400">
-              Sin imagen
-            </div>
-          )}
-        </div>
-      </div>
+    <div className="space-y-4">
+      <div className="flex items-center gap-3">
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleFileChange}
+          className="hidden"
+          id="product-image-input"
+        />
 
-      <div className="flex flex-col gap-2 sm:flex-row">
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
           disabled={uploading}
-          className="rounded-xl border border-neutral-300 bg-white px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 disabled:opacity-60"
+          className="inline-flex h-11 items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-700 transition hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {uploading ? "Subiendo..." : "Subir imagen"}
         </button>
+      </div>
 
+      <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-50">
         {value ? (
-          <button
-            type="button"
-            onClick={() => onChange("")}
-            className="rounded-xl border border-red-200 bg-white px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
-          >
-            Quitar imagen
-          </button>
-        ) : null}
+          <div className="relative aspect-[4/3] w-full">
+            <Image
+              src={value}
+              alt="Preview"
+              fill
+              className="object-cover"
+              unoptimized
+            />
+          </div>
+        ) : (
+          <div className="flex aspect-[4/3] items-center justify-center text-sm text-neutral-500">
+            Aún no hay imagen
+          </div>
+        )}
       </div>
 
       <input
-        ref={inputRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={(e) => {
-          const file = e.target.files?.[0];
-          if (file) {
-            handleFileChange(file);
-          }
-        }}
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm"
+        placeholder="URL final de la imagen"
       />
     </div>
   );

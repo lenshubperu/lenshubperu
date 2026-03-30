@@ -1,5 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
 
+export type AdminProductImage = {
+  id: string;
+  image_url: string;
+  position: number;
+};
+
 export type AdminProduct = {
   id: string;
   name: string;
@@ -15,6 +21,7 @@ export type AdminProduct = {
   sku: string | null;
   cover_image: string | null;
   badge: string | null;
+  product_images?: AdminProductImage[];
 };
 
 export async function getProductsAdmin() {
@@ -52,7 +59,12 @@ export async function getProductAdminById(id: string): Promise<AdminProduct | nu
       short_description,
       sku,
       cover_image,
-      badge
+      badge,
+      product_images (
+        id,
+        image_url,
+        position
+      )
     `)
     .eq("id", id)
     .single();
@@ -62,5 +74,11 @@ export async function getProductAdminById(id: string): Promise<AdminProduct | nu
     return null;
   }
 
-  return data as AdminProduct;
+  const product = data as AdminProduct;
+
+  product.product_images = (product.product_images || []).sort(
+    (a, b) => (a.position ?? 0) - (b.position ?? 0)
+  );
+
+  return product;
 }

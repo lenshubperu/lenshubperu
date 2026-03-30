@@ -13,9 +13,9 @@ function sanitizeFileName(name: string) {
 }
 
 export async function POST(request: NextRequest) {
-  await requireAdmin();
-
   try {
+    await requireAdmin();
+
     const formData = await request.formData();
     const file = formData.get("file");
 
@@ -30,18 +30,34 @@ export async function POST(request: NextRequest) {
     const buffer = Buffer.from(bytes);
 
     const bucket = process.env.CLOUDFLARE_R2_BUCKET;
+    const publicBaseUrl = process.env.CLOUDFLARE_R2_PUBLIC_BASE_URL;
 
-    if (!bucket) {
+    console.log("UPLOAD FILE:", {
+      name: file.name,
+      type: file.type,
+      size: file.size,
+    });
+
+    console.log("R2 ENV:", {
+      bucket,
+      publicBaseUrl,
+      hasAccountId: !!process.env.CLOUDFLARE_ACCOUNT_ID,
+      hasAccessKey: !!process.env.CLOUDFLARE_R2_ACCESS_KEY_ID,
+      hasSecret: !!process.env.CLOUDFLARE_R2_SECRET_ACCESS_KEY,
+    });
+
+    if (!bucket || !publicBaseUrl) {
       return NextResponse.json(
-        { success: false, error: "Falta la variable CLOUDFLARE_R2_BUCKET" },
+        {
+          success: false,
+          error: "Faltan variables CLOUDFLARE_R2_BUCKET o CLOUDFLARE_R2_PUBLIC_BASE_URL",
+        },
         { status: 500 }
       );
     }
 
     const timestamp = Date.now();
     const safeName = sanitizeFileName(file.name);
-
-    // Guarda todo bajo /imagenes/productos/...
     const key = `imagenes/productos/${timestamp}-${safeName}`;
 
     await r2.send(
@@ -53,8 +69,10 @@ export async function POST(request: NextRequest) {
       })
     );
 
-    // Guardamos ruta relativa, no URL absoluta
-    const imageUrl = `/${key}`;
+    const normalizedBase = publicBaseUrl.replace(/\/+$/, "");
+    const imageUrl = `${normalizedBase}/${key}`;
+
+    console.log("UPLOAD OK:", { key, imageUrl });
 
     return NextResponse.json({
       success: true,
@@ -65,7 +83,10 @@ export async function POST(request: NextRequest) {
     console.error("R2 upload error:", error);
 
     return NextResponse.json(
-      { success: false, error: "No se pudo subir la imagen a R2" },
+      {
+        success: false,
+        error: error instanceof Error ? error.message : "No se pudo subir la imagen a R2",
+      },
       { status: 500 }
     );
   }
