@@ -201,6 +201,9 @@ export async function createProduct(data: {
   }
 
   revalidatePath("/admin/productos");
+  revalidatePath("/productos");
+  revalidatePath("/");
+  revalidatePath(`/producto/${inserted.slug}`);
 
   return {
     success: true,
@@ -269,6 +272,22 @@ export async function updateProduct(data: {
       error: "Ya existe otro producto con ese SKU",
     };
   }
+
+  const { data: currentProduct, error: currentProductError } = await supabase
+    .from("products")
+    .select("slug")
+    .eq("id", data.id)
+    .single();
+
+  if (currentProductError) {
+    console.error("Error obteniendo slug actual del producto:", currentProductError);
+    return {
+      success: false,
+      error: currentProductError.message,
+    };
+  }
+
+  const oldSlug = currentProduct?.slug;
 
   const payload = {
     name: data.name,
@@ -424,6 +443,10 @@ export async function updateProduct(data: {
 
   revalidatePath("/admin/productos");
   revalidatePath(`/admin/productos/${data.id}`);
+  revalidatePath("/productos");
+  revalidatePath("/");
+  if (oldSlug) revalidatePath(`/producto/${oldSlug}`);
+  revalidatePath(`/producto/${slug}`);
 
   return {
     success: true,
@@ -432,6 +455,14 @@ export async function updateProduct(data: {
 
 export async function deleteProduct(productId: string) {
   const supabase = await createClient();
+
+  const { data: currentProduct } = await supabase
+    .from("products")
+    .select("slug")
+    .eq("id", productId)
+    .single();
+
+  const oldSlug = currentProduct?.slug;
 
   const [
     deleteImagesResult,
@@ -491,6 +522,9 @@ export async function deleteProduct(productId: string) {
   }
 
   revalidatePath("/admin/productos");
+  revalidatePath("/productos");
+  revalidatePath("/");
+  if (oldSlug) revalidatePath(`/producto/${oldSlug}`);
 
   return {
     success: true,
