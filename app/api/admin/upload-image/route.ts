@@ -30,18 +30,19 @@ export async function POST(request: NextRequest) {
     const buffer = Buffer.from(bytes);
 
     const bucket = process.env.CLOUDFLARE_R2_BUCKET;
-    const publicBaseUrl = process.env.CLOUDFLARE_R2_PUBLIC_BASE_URL;
 
-    if (!bucket || !publicBaseUrl) {
+    if (!bucket) {
       return NextResponse.json(
-        { success: false, error: "Faltan variables de R2" },
+        { success: false, error: "Falta la variable CLOUDFLARE_R2_BUCKET" },
         { status: 500 }
       );
     }
 
     const timestamp = Date.now();
     const safeName = sanitizeFileName(file.name);
-    const key = `productos/${timestamp}-${safeName}`;
+
+    // Guarda todo bajo /imagenes/productos/...
+    const key = `imagenes/productos/${timestamp}-${safeName}`;
 
     await r2.send(
       new PutObjectCommand({
@@ -52,7 +53,8 @@ export async function POST(request: NextRequest) {
       })
     );
 
-    const imageUrl = `${publicBaseUrl}/${key}`;
+    // Guardamos ruta relativa, no URL absoluta
+    const imageUrl = `/${key}`;
 
     return NextResponse.json({
       success: true,
