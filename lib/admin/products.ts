@@ -99,10 +99,10 @@ export async function getProductAdminById(
         position
       ),
       product_box_content (
-        id,
-        content,
-        position
-      )
+  id,
+  content:item,
+  position
+)
     `)
     .eq("id", id)
     .single();
