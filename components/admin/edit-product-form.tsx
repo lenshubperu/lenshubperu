@@ -27,7 +27,73 @@ export default function EditProductForm({ product }: Props) {
     sku: product.sku || "",
     badge: product.badge || "",
     images: (product.product_images || []).map((img) => img.image_url),
+
+    descriptions:
+      product.product_descriptions && product.product_descriptions.length > 0
+        ? product.product_descriptions
+            .sort((a, b) => a.position - b.position)
+            .map((item) => item.paragraph || "")
+        : [""],
+
+    features:
+      product.product_features && product.product_features.length > 0
+        ? product.product_features
+            .sort((a, b) => a.position - b.position)
+            .map((item) => item.feature || "")
+        : [""],
+
+    box_content:
+      product.product_box_content && product.product_box_content.length > 0
+        ? product.product_box_content
+            .sort((a, b) => a.position - b.position)
+            .map((item) => item.content || "")
+        : [""],
   });
+
+  function updateDescription(index: number, value: string) {
+    const next = [...form.descriptions];
+    next[index] = value;
+    setForm({ ...form, descriptions: next });
+  }
+
+  function addDescription() {
+    setForm({ ...form, descriptions: [...form.descriptions, ""] });
+  }
+
+  function removeDescription(index: number) {
+    const next = form.descriptions.filter((_, i) => i !== index);
+    setForm({ ...form, descriptions: next.length ? next : [""] });
+  }
+
+  function updateFeature(index: number, value: string) {
+    const next = [...form.features];
+    next[index] = value;
+    setForm({ ...form, features: next });
+  }
+
+  function addFeature() {
+    setForm({ ...form, features: [...form.features, ""] });
+  }
+
+  function removeFeature(index: number) {
+    const next = form.features.filter((_, i) => i !== index);
+    setForm({ ...form, features: next.length ? next : [""] });
+  }
+
+  function updateBoxContent(index: number, value: string) {
+    const next = [...form.box_content];
+    next[index] = value;
+    setForm({ ...form, box_content: next });
+  }
+
+  function addBoxContent() {
+    setForm({ ...form, box_content: [...form.box_content, ""] });
+  }
+
+  function removeBoxContent(index: number) {
+    const next = form.box_content.filter((_, i) => i !== index);
+    setForm({ ...form, box_content: next.length ? next : [""] });
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -50,6 +116,18 @@ export default function EditProductForm({ product }: Props) {
       return;
     }
 
+    const cleanDescriptions = form.descriptions
+      .map((item) => item.trim())
+      .filter(Boolean);
+
+    const cleanFeatures = form.features
+      .map((item) => item.trim())
+      .filter(Boolean);
+
+    const cleanBoxContent = form.box_content
+      .map((item) => item.trim())
+      .filter(Boolean);
+
     try {
       const res = await updateProduct({
         id: product.id,
@@ -61,10 +139,13 @@ export default function EditProductForm({ product }: Props) {
         stock: Number(form.stock),
         is_active: form.is_active,
         short_description: form.short_description,
-        sku: sku,
+        sku,
         badge: form.badge,
         cover_image: form.images[0] || "",
         images: form.images,
+        descriptions: cleanDescriptions,
+        features: cleanFeatures,
+        box_content: cleanBoxContent,
       });
 
       if (!res.success) {
@@ -157,6 +238,7 @@ export default function EditProductForm({ product }: Props) {
               })
             }
             className="mt-1 w-full rounded-xl border border-neutral-300 px-3 py-2"
+            placeholder="Ej: INSTAX-MINI-12-PINK"
           />
         </div>
 
@@ -225,6 +307,108 @@ export default function EditProductForm({ product }: Props) {
             onChange={(images) => setForm({ ...form, images })}
           />
         </div>
+      </div>
+
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <label className="text-sm font-medium">Descripción por párrafos</label>
+          <button
+            type="button"
+            onClick={addDescription}
+            className="rounded-xl border border-neutral-300 px-3 py-2 text-sm hover:bg-neutral-50"
+          >
+            Agregar párrafo
+          </button>
+        </div>
+
+        {form.descriptions.map((paragraph, index) => (
+          <div key={index} className="rounded-2xl border border-neutral-200 p-3">
+            <div className="mb-2 flex items-center justify-between">
+              <p className="text-sm font-medium text-neutral-700">
+                Párrafo {index + 1}
+              </p>
+              <button
+                type="button"
+                onClick={() => removeDescription(index)}
+                className="text-sm text-red-600 hover:underline"
+              >
+                Eliminar
+              </button>
+            </div>
+
+            <textarea
+              value={paragraph}
+              onChange={(e) => updateDescription(index, e.target.value)}
+              rows={4}
+              className="w-full rounded-xl border border-neutral-300 px-3 py-2"
+              placeholder="Escribe un párrafo de descripción"
+            />
+          </div>
+        ))}
+      </div>
+
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <label className="text-sm font-medium">Features</label>
+          <button
+            type="button"
+            onClick={addFeature}
+            className="rounded-xl border border-neutral-300 px-3 py-2 text-sm hover:bg-neutral-50"
+          >
+            Agregar feature
+          </button>
+        </div>
+
+        {form.features.map((feature, index) => (
+          <div key={index} className="flex gap-2">
+            <input
+              type="text"
+              value={feature}
+              onChange={(e) => updateFeature(index, e.target.value)}
+              className="w-full rounded-xl border border-neutral-300 px-3 py-2"
+              placeholder="Ej: Diseño compacto y ligero"
+            />
+            <button
+              type="button"
+              onClick={() => removeFeature(index)}
+              className="rounded-xl border border-red-200 px-3 py-2 text-red-600 hover:bg-red-50"
+            >
+              Quitar
+            </button>
+          </div>
+        ))}
+      </div>
+
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <label className="text-sm font-medium">Contenido de la caja</label>
+          <button
+            type="button"
+            onClick={addBoxContent}
+            className="rounded-xl border border-neutral-300 px-3 py-2 text-sm hover:bg-neutral-50"
+          >
+            Agregar item
+          </button>
+        </div>
+
+        {form.box_content.map((item, index) => (
+          <div key={index} className="flex gap-2">
+            <input
+              type="text"
+              value={item}
+              onChange={(e) => updateBoxContent(index, e.target.value)}
+              className="w-full rounded-xl border border-neutral-300 px-3 py-2"
+              placeholder="Ej: Cámara, correa, cable, batería..."
+            />
+            <button
+              type="button"
+              onClick={() => removeBoxContent(index)}
+              className="rounded-xl border border-red-200 px-3 py-2 text-red-600 hover:bg-red-50"
+            >
+              Quitar
+            </button>
+          </div>
+        ))}
       </div>
 
       <div className="flex items-center gap-2">

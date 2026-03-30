@@ -10,13 +10,16 @@ type Props = {
   brands: string[];
 };
 
+function normalizeList(values: string[]) {
+  return values.map((v) => v.trim()).filter(Boolean);
+}
+
 export default function NewProductForm({ categories, brands }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
   const [form, setForm] = useState({
     name: "",
-    sku: "",
     brand: brands[0] ?? "",
     category: categories[0] ?? "",
     price_online: "",
@@ -24,7 +27,14 @@ export default function NewProductForm({ categories, brands }: Props) {
     stock: "",
     is_active: true,
     images: [] as string[],
+    short_description: "",
+    sku: "",
+    badge: "",
   });
+
+  const [descriptions, setDescriptions] = useState<string[]>([""]);
+  const [features, setFeatures] = useState<string[]>([""]);
+  const [boxContent, setBoxContent] = useState<string[]>([""]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -32,7 +42,6 @@ export default function NewProductForm({ categories, brands }: Props) {
 
     setLoading(true);
 
-    // ✅ VALIDACIÓN SKU
     const sku = form.sku.trim();
     const skuRegex = /^[A-Za-z0-9_-]+$/;
 
@@ -43,7 +52,7 @@ export default function NewProductForm({ categories, brands }: Props) {
     }
 
     if (!skuRegex.test(sku)) {
-      alert("SKU inválido (solo letras, números, - y _)");
+      alert("SKU inválido. Solo letras, números, guiones y guion bajo.");
       setLoading(false);
       return;
     }
@@ -59,7 +68,12 @@ export default function NewProductForm({ categories, brands }: Props) {
         cover_image: form.images[0] || "",
         images: form.images,
         is_active: form.is_active,
-        sku: sku, // 👈 YA VALIDADO
+        short_description: form.short_description,
+        sku,
+        badge: form.badge,
+        descriptions: normalizeList(descriptions),
+        features: normalizeList(features),
+        boxContent: normalizeList(boxContent),
       });
 
       if (!res.success) {
@@ -80,7 +94,7 @@ export default function NewProductForm({ categories, brands }: Props) {
   return (
     <form
       onSubmit={handleSubmit}
-      className="space-y-4 rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm"
+      className="space-y-6 rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm"
     >
       <div className="grid gap-4 md:grid-cols-2">
         <div className="md:col-span-2">
@@ -108,6 +122,17 @@ export default function NewProductForm({ categories, brands }: Props) {
             }
             className="mt-1 w-full rounded-xl border border-neutral-300 px-3 py-2"
             placeholder="Ej: INSTAX-MINI-12-PINK"
+          />
+        </div>
+
+        <div>
+          <label className="text-sm font-medium">Badge</label>
+          <input
+            type="text"
+            value={form.badge}
+            onChange={(e) => setForm({ ...form, badge: e.target.value })}
+            className="mt-1 w-full rounded-xl border border-neutral-300 px-3 py-2"
+            placeholder="Nuevo"
           />
         </div>
 
@@ -179,6 +204,141 @@ export default function NewProductForm({ categories, brands }: Props) {
             onChange={(e) => setForm({ ...form, stock: e.target.value })}
             className="mt-1 w-full rounded-xl border border-neutral-300 px-3 py-2"
           />
+        </div>
+      </div>
+
+      <div>
+        <label className="text-sm font-medium">Descripción corta</label>
+        <textarea
+          value={form.short_description}
+          onChange={(e) =>
+            setForm({ ...form, short_description: e.target.value })
+          }
+          rows={4}
+          className="mt-1 w-full rounded-xl border border-neutral-300 px-3 py-2"
+        />
+      </div>
+
+      <div>
+        <label className="text-sm font-medium">Descripción</label>
+        <div className="mt-3 space-y-3">
+          {descriptions.map((desc, index) => (
+            <div key={index} className="space-y-2">
+              <textarea
+                value={desc}
+                onChange={(e) => {
+                  const copy = [...descriptions];
+                  copy[index] = e.target.value;
+                  setDescriptions(copy);
+                }}
+                rows={4}
+                className="w-full rounded-xl border border-neutral-300 px-3 py-2"
+                placeholder={`Párrafo ${index + 1}`}
+              />
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const copy = descriptions.filter((_, i) => i !== index);
+                    setDescriptions(copy.length ? copy : [""]);
+                  }}
+                  className="rounded-xl border border-red-200 px-3 py-2 text-sm text-red-600 hover:bg-red-50"
+                >
+                  Eliminar párrafo
+                </button>
+              </div>
+            </div>
+          ))}
+
+          <button
+            type="button"
+            onClick={() => setDescriptions([...descriptions, ""])}
+            className="rounded-xl border border-neutral-300 px-3 py-2 text-sm hover:bg-neutral-50"
+          >
+            + Agregar párrafo
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <label className="text-sm font-medium">Características completas</label>
+        <div className="mt-3 space-y-3">
+          {features.map((feature, index) => (
+            <div key={index} className="space-y-2">
+              <input
+                type="text"
+                value={feature}
+                onChange={(e) => {
+                  const copy = [...features];
+                  copy[index] = e.target.value;
+                  setFeatures(copy);
+                }}
+                className="w-full rounded-xl border border-neutral-300 px-3 py-2"
+                placeholder={`Característica ${index + 1}`}
+              />
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const copy = features.filter((_, i) => i !== index);
+                    setFeatures(copy.length ? copy : [""]);
+                  }}
+                  className="rounded-xl border border-red-200 px-3 py-2 text-sm text-red-600 hover:bg-red-50"
+                >
+                  Eliminar característica
+                </button>
+              </div>
+            </div>
+          ))}
+
+          <button
+            type="button"
+            onClick={() => setFeatures([...features, ""])}
+            className="rounded-xl border border-neutral-300 px-3 py-2 text-sm hover:bg-neutral-50"
+          >
+            + Agregar característica
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <label className="text-sm font-medium">Contenido de la caja</label>
+        <div className="mt-3 space-y-3">
+          {boxContent.map((item, index) => (
+            <div key={index} className="space-y-2">
+              <input
+                type="text"
+                value={item}
+                onChange={(e) => {
+                  const copy = [...boxContent];
+                  copy[index] = e.target.value;
+                  setBoxContent(copy);
+                }}
+                className="w-full rounded-xl border border-neutral-300 px-3 py-2"
+                placeholder={`Contenido ${index + 1}`}
+              />
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const copy = boxContent.filter((_, i) => i !== index);
+                    setBoxContent(copy.length ? copy : [""]);
+                  }}
+                  className="rounded-xl border border-red-200 px-3 py-2 text-sm text-red-600 hover:bg-red-50"
+                >
+                  Eliminar item
+                </button>
+              </div>
+            </div>
+          ))}
+
+          <button
+            type="button"
+            onClick={() => setBoxContent([...boxContent, ""])}
+            className="rounded-xl border border-neutral-300 px-3 py-2 text-sm hover:bg-neutral-50"
+          >
+            + Agregar item
+          </button>
         </div>
       </div>
 

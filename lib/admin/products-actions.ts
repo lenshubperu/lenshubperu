@@ -22,6 +22,14 @@ function isValidSku(value: string) {
   return /^[A-Z0-9_-]+$/.test(value);
 }
 
+function cleanStringArray(values: string[]) {
+  return values.map((v) => v.trim()).filter(Boolean);
+}
+
+type ProductDescriptionsInput = string[];
+type ProductFeaturesInput = string[];
+type ProductBoxContentInput = string[];
+
 export async function createProduct(data: {
   name: string;
   brand: string;
@@ -33,11 +41,19 @@ export async function createProduct(data: {
   cover_image: string;
   images: string[];
   sku: string;
+  short_description?: string;
+  badge?: string;
+  descriptions: ProductDescriptionsInput;
+  features: ProductFeaturesInput;
+  boxContent: ProductBoxContentInput;
 }) {
   const supabase = await createClient();
 
   const slug = slugify(data.name);
   const sku = normalizeSku(data.sku || "");
+  const descriptions = cleanStringArray(data.descriptions || []);
+  const features = cleanStringArray(data.features || []);
+  const boxContent = cleanStringArray(data.boxContent || []);
 
   if (!sku) {
     return {
@@ -84,10 +100,10 @@ export async function createProduct(data: {
     stock: data.stock,
     is_active: data.is_active,
     is_featured: false,
-    short_description: null,
+    short_description: data.short_description?.trim() || null,
     sku,
     cover_image: data.cover_image || data.images[0] || null,
-    badge: null,
+    badge: data.badge?.trim() || null,
   };
 
   const { data: inserted, error } = await supabase
@@ -124,6 +140,66 @@ export async function createProduct(data: {
     }
   }
 
+  if (descriptions.length > 0) {
+    const rows = descriptions.map((paragraph, index) => ({
+      product_id: inserted.id,
+      paragraph,
+      position: index + 1,
+    }));
+
+    const { error: descriptionsError } = await supabase
+      .from("product_descriptions")
+      .insert(rows);
+
+    if (descriptionsError) {
+      console.error("Error creando descripciones:", descriptionsError);
+      return {
+        success: false,
+        error: descriptionsError.message,
+      };
+    }
+  }
+
+  if (features.length > 0) {
+    const rows = features.map((feature, index) => ({
+      product_id: inserted.id,
+      feature,
+      position: index + 1,
+    }));
+
+    const { error: featuresError } = await supabase
+      .from("product_features")
+      .insert(rows);
+
+    if (featuresError) {
+      console.error("Error creando características:", featuresError);
+      return {
+        success: false,
+        error: featuresError.message,
+      };
+    }
+  }
+
+  if (boxContent.length > 0) {
+    const rows = boxContent.map((content, index) => ({
+      product_id: inserted.id,
+      content,
+      position: index + 1,
+    }));
+
+    const { error: boxContentError } = await supabase
+      .from("product_box_content")
+      .insert(rows);
+
+    if (boxContentError) {
+      console.error("Error creando contenido de caja:", boxContentError);
+      return {
+        success: false,
+        error: boxContentError.message,
+      };
+    }
+  }
+
   revalidatePath("/admin/productos");
 
   return {
@@ -146,11 +222,17 @@ export async function updateProduct(data: {
   badge: string;
   cover_image: string;
   images: string[];
+  descriptions: ProductDescriptionsInput;
+  features: ProductFeaturesInput;
+  boxContent: ProductBoxContentInput;
 }) {
   const supabase = await createClient();
 
   const slug = slugify(data.name);
   const sku = normalizeSku(data.sku || "");
+  const descriptions = cleanStringArray(data.descriptions || []);
+  const features = cleanStringArray(data.features || []);
+  const boxContent = cleanStringArray(data.boxContent || []);
 
   if (!sku) {
     return {
@@ -197,9 +279,9 @@ export async function updateProduct(data: {
     price_store: data.price_store,
     stock: data.stock,
     is_active: data.is_active,
-    short_description: data.short_description || null,
+    short_description: data.short_description?.trim() || null,
     sku,
-    badge: data.badge || null,
+    badge: data.badge?.trim() || null,
     cover_image: data.cover_image || data.images[0] || null,
   };
 
@@ -216,16 +298,47 @@ export async function updateProduct(data: {
     };
   }
 
-  const { error: deleteImagesError } = await supabase
-    .from("product_images")
-    .delete()
-    .eq("product_id", data.id);
+  const [
+    deleteImagesError,
+    deleteDescriptionsError,
+    deleteFeaturesError,
+    deleteBoxContentError,
+  ] = await Promise.all([
+    supabase.from("product_images").delete().eq("product_id", data.id),
+    supabase.from("product_descriptions").delete().eq("product_id", data.id),
+    supabase.from("product_features").delete().eq("product_id", data.id),
+    supabase.from("product_box_content").delete().eq("product_id", data.id),
+  ]);
 
-  if (deleteImagesError) {
-    console.error("Error limpiando imágenes:", deleteImagesError);
+  if (deleteImagesError.error) {
+    console.error("Error limpiando imágenes:", deleteImagesError.error);
     return {
       success: false,
-      error: deleteImagesError.message,
+      error: deleteImagesError.error.message,
+    };
+  }
+
+  if (deleteDescriptionsError.error) {
+    console.error("Error limpiando descripciones:", deleteDescriptionsError.error);
+    return {
+      success: false,
+      error: deleteDescriptionsError.error.message,
+    };
+  }
+
+  if (deleteFeaturesError.error) {
+    console.error("Error limpiando características:", deleteFeaturesError.error);
+    return {
+      success: false,
+      error: deleteFeaturesError.error.message,
+    };
+  }
+
+  if (deleteBoxContentError.error) {
+    console.error("Error limpiando contenido de caja:", deleteBoxContentError.error);
+    return {
+      success: false,
+      error: deleteBoxContentError.error.message,
     };
   }
 
@@ -249,6 +362,66 @@ export async function updateProduct(data: {
     }
   }
 
+  if (descriptions.length > 0) {
+    const rows = descriptions.map((paragraph, index) => ({
+      product_id: data.id,
+      paragraph,
+      position: index + 1,
+    }));
+
+    const { error: insertDescriptionsError } = await supabase
+      .from("product_descriptions")
+      .insert(rows);
+
+    if (insertDescriptionsError) {
+      console.error("Error guardando descripciones:", insertDescriptionsError);
+      return {
+        success: false,
+        error: insertDescriptionsError.message,
+      };
+    }
+  }
+
+  if (features.length > 0) {
+    const rows = features.map((feature, index) => ({
+      product_id: data.id,
+      feature,
+      position: index + 1,
+    }));
+
+    const { error: insertFeaturesError } = await supabase
+      .from("product_features")
+      .insert(rows);
+
+    if (insertFeaturesError) {
+      console.error("Error guardando características:", insertFeaturesError);
+      return {
+        success: false,
+        error: insertFeaturesError.message,
+      };
+    }
+  }
+
+  if (boxContent.length > 0) {
+    const rows = boxContent.map((content, index) => ({
+      product_id: data.id,
+      content,
+      position: index + 1,
+    }));
+
+    const { error: insertBoxContentError } = await supabase
+      .from("product_box_content")
+      .insert(rows);
+
+    if (insertBoxContentError) {
+      console.error("Error guardando contenido de caja:", insertBoxContentError);
+      return {
+        success: false,
+        error: insertBoxContentError.message,
+      };
+    }
+  }
+
   revalidatePath("/admin/productos");
   revalidatePath(`/admin/productos/${data.id}`);
 
@@ -260,16 +433,47 @@ export async function updateProduct(data: {
 export async function deleteProduct(productId: string) {
   const supabase = await createClient();
 
-  const { error: deleteImagesError } = await supabase
-    .from("product_images")
-    .delete()
-    .eq("product_id", productId);
+  const [
+    deleteImagesError,
+    deleteDescriptionsError,
+    deleteFeaturesError,
+    deleteBoxContentError,
+  ] = await Promise.all([
+    supabase.from("product_images").delete().eq("product_id", productId),
+    supabase.from("product_descriptions").delete().eq("product_id", productId),
+    supabase.from("product_features").delete().eq("product_id", productId),
+    supabase.from("product_box_content").delete().eq("product_id", productId),
+  ]);
 
-  if (deleteImagesError) {
-    console.error("Error eliminando imágenes del producto:", deleteImagesError);
+  if (deleteImagesError.error) {
+    console.error("Error eliminando imágenes del producto:", deleteImagesError.error);
     return {
       success: false,
-      error: deleteImagesError.message,
+      error: deleteImagesError.error.message,
+    };
+  }
+
+  if (deleteDescriptionsError.error) {
+    console.error("Error eliminando descripciones del producto:", deleteDescriptionsError.error);
+    return {
+      success: false,
+      error: deleteDescriptionsError.error.message,
+    };
+  }
+
+  if (deleteFeaturesError.error) {
+    console.error("Error eliminando características del producto:", deleteFeaturesError.error);
+    return {
+      success: false,
+      error: deleteFeaturesError.error.message,
+    };
+  }
+
+  if (deleteBoxContentError.error) {
+    console.error("Error eliminando contenido de caja del producto:", deleteBoxContentError.error);
+    return {
+      success: false,
+      error: deleteBoxContentError.error.message,
     };
   }
 
