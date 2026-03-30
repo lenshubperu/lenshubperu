@@ -181,9 +181,9 @@ export async function createProduct(data: {
   }
 
   if (boxContent.length > 0) {
-    const rows = boxContent.map((content, index) => ({
+    const rows = boxContent.map((text, index) => ({
       product_id: inserted.id,
-      content,
+      item: text,
       position: index + 1,
     }));
 
@@ -403,9 +403,9 @@ export async function updateProduct(data: {
   }
 
   if (boxContent.length > 0) {
-    const rows = boxContent.map((content, index) => ({
+    const rows = boxContent.map((text, index) => ({
       product_id: data.id,
-      content,
+      item: text,
       position: index + 1,
     }));
 
