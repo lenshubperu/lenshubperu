@@ -16,6 +16,7 @@ export default function NewProductForm({ categories, brands }: Props) {
 
   const [form, setForm] = useState({
     name: "",
+    sku: "",
     brand: brands[0] ?? "",
     category: categories[0] ?? "",
     price_online: "",
@@ -31,6 +32,22 @@ export default function NewProductForm({ categories, brands }: Props) {
 
     setLoading(true);
 
+    // ✅ VALIDACIÓN SKU
+    const sku = form.sku.trim();
+    const skuRegex = /^[A-Za-z0-9_-]+$/;
+
+    if (!sku) {
+      alert("El SKU es obligatorio");
+      setLoading(false);
+      return;
+    }
+
+    if (!skuRegex.test(sku)) {
+      alert("SKU inválido (solo letras, números, - y _)");
+      setLoading(false);
+      return;
+    }
+
     try {
       const res = await createProduct({
         name: form.name,
@@ -42,6 +59,7 @@ export default function NewProductForm({ categories, brands }: Props) {
         cover_image: form.images[0] || "",
         images: form.images,
         is_active: form.is_active,
+        sku: sku, // 👈 YA VALIDADO
       });
 
       if (!res.success) {
@@ -73,6 +91,23 @@ export default function NewProductForm({ categories, brands }: Props) {
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
             className="mt-1 w-full rounded-xl border border-neutral-300 px-3 py-2"
+          />
+        </div>
+
+        <div>
+          <label className="text-sm font-medium">SKU</label>
+          <input
+            type="text"
+            required
+            value={form.sku}
+            onChange={(e) =>
+              setForm({
+                ...form,
+                sku: e.target.value.toUpperCase().replace(/\s+/g, ""),
+              })
+            }
+            className="mt-1 w-full rounded-xl border border-neutral-300 px-3 py-2"
+            placeholder="Ej: INSTAX-MINI-12-PINK"
           />
         </div>
 

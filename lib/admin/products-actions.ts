@@ -14,6 +14,14 @@ function slugify(text: string) {
     .replace(/-+/g, "-");
 }
 
+function normalizeSku(value: string) {
+  return value.trim().toUpperCase().replace(/\s+/g, "");
+}
+
+function isValidSku(value: string) {
+  return /^[A-Z0-9_-]+$/.test(value);
+}
+
 export async function createProduct(data: {
   name: string;
   brand: string;
@@ -24,10 +32,47 @@ export async function createProduct(data: {
   is_active: boolean;
   cover_image: string;
   images: string[];
+  sku: string;
 }) {
   const supabase = await createClient();
 
   const slug = slugify(data.name);
+  const sku = normalizeSku(data.sku || "");
+
+  if (!sku) {
+    return {
+      success: false,
+      error: "El SKU es obligatorio",
+    };
+  }
+
+  if (!isValidSku(sku)) {
+    return {
+      success: false,
+      error: "El SKU solo puede contener letras, números, guiones y guion bajo",
+    };
+  }
+
+  const { data: existingSku, error: existingSkuError } = await supabase
+    .from("products")
+    .select("id")
+    .eq("sku", sku)
+    .maybeSingle();
+
+  if (existingSkuError) {
+    console.error("Error validando SKU:", existingSkuError);
+    return {
+      success: false,
+      error: existingSkuError.message,
+    };
+  }
+
+  if (existingSku) {
+    return {
+      success: false,
+      error: "Ya existe un producto con ese SKU",
+    };
+  }
 
   const payload = {
     name: data.name,
@@ -40,7 +85,7 @@ export async function createProduct(data: {
     is_active: data.is_active,
     is_featured: false,
     short_description: null,
-    sku: null,
+    sku,
     cover_image: data.cover_image || data.images[0] || null,
     badge: null,
   };
@@ -48,7 +93,7 @@ export async function createProduct(data: {
   const { data: inserted, error } = await supabase
     .from("products")
     .insert(payload)
-    .select("id, name, slug, cover_image")
+    .select("id, name, slug, cover_image, sku")
     .single();
 
   if (error || !inserted) {
@@ -105,6 +150,43 @@ export async function updateProduct(data: {
   const supabase = await createClient();
 
   const slug = slugify(data.name);
+  const sku = normalizeSku(data.sku || "");
+
+  if (!sku) {
+    return {
+      success: false,
+      error: "El SKU es obligatorio",
+    };
+  }
+
+  if (!isValidSku(sku)) {
+    return {
+      success: false,
+      error: "El SKU solo puede contener letras, números, guiones y guion bajo",
+    };
+  }
+
+  const { data: existingSku, error: existingSkuError } = await supabase
+    .from("products")
+    .select("id")
+    .eq("sku", sku)
+    .neq("id", data.id)
+    .maybeSingle();
+
+  if (existingSkuError) {
+    console.error("Error validando SKU:", existingSkuError);
+    return {
+      success: false,
+      error: existingSkuError.message,
+    };
+  }
+
+  if (existingSku) {
+    return {
+      success: false,
+      error: "Ya existe otro producto con ese SKU",
+    };
+  }
 
   const payload = {
     name: data.name,
@@ -116,7 +198,7 @@ export async function updateProduct(data: {
     stock: data.stock,
     is_active: data.is_active,
     short_description: data.short_description || null,
-    sku: data.sku || null,
+    sku,
     badge: data.badge || null,
     cover_image: data.cover_image || data.images[0] || null,
   };

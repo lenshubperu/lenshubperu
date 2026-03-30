@@ -35,6 +35,21 @@ export default function EditProductForm({ product }: Props) {
 
     setLoading(true);
 
+    const sku = form.sku.trim();
+    const skuRegex = /^[A-Za-z0-9_-]+$/;
+
+    if (!sku) {
+      alert("El SKU es obligatorio");
+      setLoading(false);
+      return;
+    }
+
+    if (!skuRegex.test(sku)) {
+      alert("SKU inválido");
+      setLoading(false);
+      return;
+    }
+
     try {
       const res = await updateProduct({
         id: product.id,
@@ -46,7 +61,7 @@ export default function EditProductForm({ product }: Props) {
         stock: Number(form.stock),
         is_active: form.is_active,
         short_description: form.short_description,
-        sku: form.sku,
+        sku: sku,
         badge: form.badge,
         cover_image: form.images[0] || "",
         images: form.images,
@@ -135,7 +150,12 @@ export default function EditProductForm({ product }: Props) {
           <input
             type="text"
             value={form.sku}
-            onChange={(e) => setForm({ ...form, sku: e.target.value })}
+            onChange={(e) =>
+              setForm({
+                ...form,
+                sku: e.target.value.toUpperCase().replace(/\s+/g, ""),
+              })
+            }
             className="mt-1 w-full rounded-xl border border-neutral-300 px-3 py-2"
           />
         </div>
