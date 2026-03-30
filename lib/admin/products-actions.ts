@@ -22,7 +22,7 @@ function isValidSku(value: string) {
   return /^[A-Z0-9_-]+$/.test(value);
 }
 
-function cleanStringArray(values: string[]) {
+function cleanStringArray(values: string[] = []) {
   return values.map((v) => v.trim()).filter(Boolean);
 }
 
@@ -43,9 +43,9 @@ export async function createProduct(data: {
   sku: string;
   short_description?: string;
   badge?: string;
-  descriptions: ProductDescriptionsInput;
-  features: ProductFeaturesInput;
-  boxContent: ProductBoxContentInput;
+  descriptions?: ProductDescriptionsInput;
+  features?: ProductFeaturesInput;
+  box_content?: ProductBoxContentInput;
 }) {
   const supabase = await createClient();
 
@@ -53,7 +53,7 @@ export async function createProduct(data: {
   const sku = normalizeSku(data.sku || "");
   const descriptions = cleanStringArray(data.descriptions || []);
   const features = cleanStringArray(data.features || []);
-  const boxContent = cleanStringArray(data.boxContent || []);
+  const boxContent = cleanStringArray(data.box_content || []);
 
   if (!sku) {
     return {
@@ -222,9 +222,9 @@ export async function updateProduct(data: {
   badge: string;
   cover_image: string;
   images: string[];
-  descriptions: ProductDescriptionsInput;
-  features: ProductFeaturesInput;
-  boxContent: ProductBoxContentInput;
+  descriptions?: ProductDescriptionsInput;
+  features?: ProductFeaturesInput;
+  box_content?: ProductBoxContentInput;
 }) {
   const supabase = await createClient();
 
@@ -232,7 +232,7 @@ export async function updateProduct(data: {
   const sku = normalizeSku(data.sku || "");
   const descriptions = cleanStringArray(data.descriptions || []);
   const features = cleanStringArray(data.features || []);
-  const boxContent = cleanStringArray(data.boxContent || []);
+  const boxContent = cleanStringArray(data.box_content || []);
 
   if (!sku) {
     return {
@@ -299,10 +299,10 @@ export async function updateProduct(data: {
   }
 
   const [
-    deleteImagesError,
-    deleteDescriptionsError,
-    deleteFeaturesError,
-    deleteBoxContentError,
+    deleteImagesResult,
+    deleteDescriptionsResult,
+    deleteFeaturesResult,
+    deleteBoxContentResult,
   ] = await Promise.all([
     supabase.from("product_images").delete().eq("product_id", data.id),
     supabase.from("product_descriptions").delete().eq("product_id", data.id),
@@ -310,35 +310,35 @@ export async function updateProduct(data: {
     supabase.from("product_box_content").delete().eq("product_id", data.id),
   ]);
 
-  if (deleteImagesError.error) {
-    console.error("Error limpiando imágenes:", deleteImagesError.error);
+  if (deleteImagesResult.error) {
+    console.error("Error limpiando imágenes:", deleteImagesResult.error);
     return {
       success: false,
-      error: deleteImagesError.error.message,
+      error: deleteImagesResult.error.message,
     };
   }
 
-  if (deleteDescriptionsError.error) {
-    console.error("Error limpiando descripciones:", deleteDescriptionsError.error);
+  if (deleteDescriptionsResult.error) {
+    console.error("Error limpiando descripciones:", deleteDescriptionsResult.error);
     return {
       success: false,
-      error: deleteDescriptionsError.error.message,
+      error: deleteDescriptionsResult.error.message,
     };
   }
 
-  if (deleteFeaturesError.error) {
-    console.error("Error limpiando características:", deleteFeaturesError.error);
+  if (deleteFeaturesResult.error) {
+    console.error("Error limpiando características:", deleteFeaturesResult.error);
     return {
       success: false,
-      error: deleteFeaturesError.error.message,
+      error: deleteFeaturesResult.error.message,
     };
   }
 
-  if (deleteBoxContentError.error) {
-    console.error("Error limpiando contenido de caja:", deleteBoxContentError.error);
+  if (deleteBoxContentResult.error) {
+    console.error("Error limpiando contenido de caja:", deleteBoxContentResult.error);
     return {
       success: false,
-      error: deleteBoxContentError.error.message,
+      error: deleteBoxContentResult.error.message,
     };
   }
 
@@ -434,10 +434,10 @@ export async function deleteProduct(productId: string) {
   const supabase = await createClient();
 
   const [
-    deleteImagesError,
-    deleteDescriptionsError,
-    deleteFeaturesError,
-    deleteBoxContentError,
+    deleteImagesResult,
+    deleteDescriptionsResult,
+    deleteFeaturesResult,
+    deleteBoxContentResult,
   ] = await Promise.all([
     supabase.from("product_images").delete().eq("product_id", productId),
     supabase.from("product_descriptions").delete().eq("product_id", productId),
@@ -445,35 +445,35 @@ export async function deleteProduct(productId: string) {
     supabase.from("product_box_content").delete().eq("product_id", productId),
   ]);
 
-  if (deleteImagesError.error) {
-    console.error("Error eliminando imágenes del producto:", deleteImagesError.error);
+  if (deleteImagesResult.error) {
+    console.error("Error eliminando imágenes del producto:", deleteImagesResult.error);
     return {
       success: false,
-      error: deleteImagesError.error.message,
+      error: deleteImagesResult.error.message,
     };
   }
 
-  if (deleteDescriptionsError.error) {
-    console.error("Error eliminando descripciones del producto:", deleteDescriptionsError.error);
+  if (deleteDescriptionsResult.error) {
+    console.error("Error eliminando descripciones del producto:", deleteDescriptionsResult.error);
     return {
       success: false,
-      error: deleteDescriptionsError.error.message,
+      error: deleteDescriptionsResult.error.message,
     };
   }
 
-  if (deleteFeaturesError.error) {
-    console.error("Error eliminando características del producto:", deleteFeaturesError.error);
+  if (deleteFeaturesResult.error) {
+    console.error("Error eliminando características del producto:", deleteFeaturesResult.error);
     return {
       success: false,
-      error: deleteFeaturesError.error.message,
+      error: deleteFeaturesResult.error.message,
     };
   }
 
-  if (deleteBoxContentError.error) {
-    console.error("Error eliminando contenido de caja del producto:", deleteBoxContentError.error);
+  if (deleteBoxContentResult.error) {
+    console.error("Error eliminando contenido de caja del producto:", deleteBoxContentResult.error);
     return {
       success: false,
-      error: deleteBoxContentError.error.message,
+      error: deleteBoxContentResult.error.message,
     };
   }
 
