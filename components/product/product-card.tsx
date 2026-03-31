@@ -23,32 +23,23 @@ export default function ProductCard({
 }) {
   const { addItem } = useCart();
 
-  const imageUrl = (product.image || "").trim();
-
   return (
     <article className="group">
       <Link href={`/producto/${product.slug}`} className="block">
         <div className="relative flex h-[180px] items-center justify-center sm:h-[200px]">
           {product.badge && (
-            <span className="absolute left-0 top-0 z-10 rounded-full bg-black px-3 py-1 text-[11px] font-medium text-white">
+            <span className="absolute left-0 top-0 rounded-full bg-black px-3 py-1 text-[11px] font-medium text-white">
               {product.badge}
             </span>
           )}
 
-          {imageUrl ? (
-            <Image
-              src={imageUrl}
-              alt={product.name}
-              width={220}
-              height={220}
-              unoptimized
-              className="max-h-[170px] w-auto object-contain transition duration-500 group-hover:scale-110 sm:max-h-[185px]"
-            />
-          ) : (
-            <div className="flex h-[170px] w-[220px] items-center justify-center rounded-xl bg-neutral-100 text-sm text-neutral-400 sm:h-[185px]">
-              Sin imagen
-            </div>
-          )}
+          <Image
+            src={product.image}
+            alt={product.name}
+            width={220}
+            height={220}
+            className="max-h-[170px] w-auto object-contain transition duration-500 group-hover:scale-110 sm:max-h-[185px]"
+          />
         </div>
       </Link>
 
@@ -92,7 +83,7 @@ export default function ProductCard({
                 slug: product.slug,
                 name: product.name,
                 price: product.price_online,
-                mainImage: imageUrl,
+                mainImage: product.image,
                 color: null,
                 size: null,
               })
