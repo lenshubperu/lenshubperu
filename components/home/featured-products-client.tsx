@@ -3,19 +3,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useCartStore } from "@/store/cart-store";
-
-export type FeaturedProductItem = {
-  id: string;
-  name: string;
-  slug: string | null;
-  price_online: number;
-  price_store: number | null;
-  cover_image: string | null;
-  badge: string | null;
-};
+import type { CatalogProduct } from "@/lib/products";
 
 type Props = {
-  products: FeaturedProductItem[];
+  products: CatalogProduct[];
 };
 
 export default function FeaturedProductsClient({ products }: Props) {
@@ -44,11 +35,11 @@ export default function FeaturedProductsClient({ products }: Props) {
             <Link href={product.slug ? `/producto/${product.slug}` : "#"}>
               <div className="flex h-[220px] items-center justify-center">
                 <Image
-                  src={product.cover_image || "/placeholder.png"}
+                  src={product.image || "/placeholder.png"}
                   alt={product.name}
                   width={260}
                   height={260}
-                  className="w-auto max-h-full object-contain transition duration-500 group-hover:scale-110"
+                  className="max-h-full w-auto object-contain transition duration-500 group-hover:scale-110"
                 />
               </div>
             </Link>
@@ -82,7 +73,7 @@ export default function FeaturedProductsClient({ products }: Props) {
                     id: product.id,
                     name: product.name,
                     price: product.price_online,
-                    image: product.cover_image || "/placeholder.png",
+                    image: product.image || "/placeholder.png",
                   })
                 }
                 className="mt-5 inline-flex h-[44px] w-full items-center justify-center rounded-full border border-black text-sm font-medium text-black transition duration-300 hover:bg-black hover:text-white"
