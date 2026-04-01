@@ -134,7 +134,6 @@ function getProductSearchText(product: ProductRow) {
 
 function getMatchScore(product: ProductRow, query: string) {
   const normalizedQuery = normalizeText(query);
-
   if (!normalizedQuery) return 1;
 
   const searchText = getProductSearchText(product);
@@ -168,7 +167,6 @@ function getMatchScore(product: ProductRow, query: string) {
 
       if (Math.abs(word.length - term.length) <= 2) {
         const distance = levenshteinDistance(word, term);
-
         if (distance === 1) score += 8;
         else if (distance === 2 && term.length >= 6) score += 4;
       }
@@ -180,7 +178,6 @@ function getMatchScore(product: ProductRow, query: string) {
 
 function applySmartSearch(products: ProductRow[], search?: string) {
   const normalizedSearch = normalizeText(search ?? "");
-
   if (!normalizedSearch) return products;
 
   return products
@@ -315,4 +312,24 @@ export async function getRelatedProducts(
   }
 
   return ((data ?? []) as ProductRow[]).map(mapCatalogProduct);
+}
+
+/* ============================
+   🔥 NUEVO: RANDOM FEATURED
+============================ */
+
+function shuffleArray<T>(array: T[]): T[] {
+  const arr = [...array];
+
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+
+  return arr;
+}
+
+export async function getRandomFeaturedProducts(limit = 4) {
+  const products = await getCatalogProducts();
+  return shuffleArray(products).slice(0, limit);
 }
