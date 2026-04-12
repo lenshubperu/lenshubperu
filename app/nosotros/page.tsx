@@ -34,7 +34,7 @@ export default function NosotrosPage() {
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link
-                href="/catalogo"
+                href="/productos"
                 className="inline-flex min-h-[52px] items-center justify-center rounded-full bg-black px-7 text-sm font-medium text-white transition duration-300 hover:-translate-y-0.5 hover:opacity-90"
               >
                 Ver productos
@@ -184,7 +184,7 @@ export default function NosotrosPage() {
 
             <div className="flex flex-col gap-3 sm:flex-row lg:flex-col">
               <Link
-                href="/catalogo"
+                href="/productos"
                 className="inline-flex min-h-[52px] items-center justify-center rounded-full bg-white px-7 text-sm font-medium text-black transition duration-300 hover:-translate-y-0.5 hover:bg-neutral-100"
               >
                 Ver productos

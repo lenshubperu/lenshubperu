@@ -1,4 +1,4 @@
-import { getRandomFeaturedProducts } from "@/lib/products"; // o tu ruta real
+import { getRandomFeaturedProducts } from "@/lib/products";
 import FeaturedProductsClient from "./featured-products-client";
 
 export default async function FeaturedProducts() {

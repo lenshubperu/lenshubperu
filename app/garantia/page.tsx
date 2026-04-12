@@ -178,4 +178,4 @@ export default function GarantiaPage() {
       </section>
     </main>
   );
-}
+}   

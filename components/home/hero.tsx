@@ -121,7 +121,7 @@ export default function Hero() {
           <div className="mt-8">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
               <Link
-                href="/catalogo"
+                href="/productos"
                 className="inline-flex min-h-[56px] items-center justify-center rounded-2xl bg-black px-7 py-3 text-sm font-medium text-white shadow-[0_10px_30px_rgba(0,0,0,0.12)] transition duration-300 hover:-translate-y-0.5 hover:opacity-90"
               >
                 Ver productos
