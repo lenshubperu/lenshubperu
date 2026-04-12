@@ -1,11 +1,33 @@
 @import "tailwindcss";
 
+:root {
+  --background: #ffffff;
+  --foreground: #111111;
+}
+
 html {
-  color-scheme: light;
+  color-scheme: light !important;
+  background: #ffffff !important;
 }
 
 body {
-  background: white;
-  color: black;
+  background: #ffffff !important;
+  color: #111111 !important;
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Evita que inputs y controles adopten modo oscuro del sistema */
+input,
+textarea,
+select,
+button {
+  color-scheme: light !important;
+}
+
+/* Por si algún navegador hereda fondos oscuros */
+input,
+textarea,
+select {
+  background: #ffffff !important;
+  color: #111111 !important;
 }
