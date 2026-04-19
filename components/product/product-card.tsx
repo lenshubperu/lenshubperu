@@ -26,20 +26,23 @@ export default function ProductCard({
   return (
     <article className="group">
       <Link href={`/producto/${product.slug}`} className="block">
-        <div className="relative flex h-[180px] items-center justify-center sm:h-[200px]">
+        <div className="relative w-full aspect-square rounded-xl bg-neutral-50">
           {product.badge && (
-            <span className="absolute left-0 top-0 rounded-full bg-black px-3 py-1 text-[11px] font-medium text-white">
+            <span className="absolute left-2 top-2 z-10 rounded-full bg-black px-3 py-1 text-[11px] font-medium text-white">
               {product.badge}
             </span>
           )}
 
-          <Image
-            src={product.image}
-            alt={product.name}
-            width={220}
-            height={220}
-            className="max-h-[170px] w-auto object-contain transition duration-500 group-hover:scale-110 sm:max-h-[185px]"
-          />
+          {product.image && (
+            <Image
+              src={product.image}
+              alt={product.name}
+              fill
+              className="object-contain p-4 transition duration-500 group-hover:scale-110"
+              sizes="(max-width: 768px) 100vw, 25vw"
+              unoptimized
+            />
+          )}
         </div>
       </Link>
 
